@@ -1,91 +1,92 @@
-var express = require("express")
-var bodyParser = require("body-parser")
-var mongoose = require("mongoose")
-const User = require("./models/user")
+var express = require("express");
+var mongoose = require("mongoose");
+const User = require("./models/user");
 
-const app = express()
-app.use(express.json())
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 
-// mongodb+srv://niraj365:Npoudel@123@cluster0.ehfsdkf.mongodb.net/?retryWrites=true&w=majority
+connUrl =
+  "mongodb+srv://niraj365:niraj365@cluster0.ehfsdkf.mongodb.net/?retryWrites=true&w=majority";
 
-connUrl =  'mongodb+srv://niraj365:niraj365@cluster0.ehfsdkf.mongodb.net/?retryWrites=true&w=majority'
+mongoose
+  .connect(connUrl)
+  .then(console.log("Mongodb Connected..."))
+  .catch((err) => console.log(err));
 
-mongoose.connect(connUrl).then(console.log('Mongodb Connected...')).catch(err=>(
-    console.log(err)
-))
-
-// mongoose.connect('mongodb+srv://vortex:vortex@cluster0.axlq4.mongodb.net/test123?retryWrites=true&w=majority',(err)=>{
-//     if(!err) console.log("Connected Successfully");
-//     else console.log(err);
-// });
-var database =mongoose.connection;
+var database = mongoose.connection;
 
 // database.on('error',()=>console.log("Error while connecting to database!!"))
 // database.once('open',()=>console.log("Connected to database"))
 
-app.post("/signup",(req,res)=>{
+app.get("/users", (req, res) => {
+  //To see users in database
+  User.find().exec((err, data) => {
+    if (err) console.log(err);
+    console.log(data);
+    res.json(data);
+  });
+});
 
-    const data = new User(
-        req.body
-    )
+app.post("/signup", (req, res) => {
+  const { username, email, password } = req.body;
+  if (req.body) {
+    const data = new User({
+      name: username,
+      email: email,
+      password: password,
+    });
 
-     data.save((err,data)=>{
-        if(err) 
+    data.save((err, data) => {
+      if (err) {
         console.log(err);
-                return res.redirect('signup_success.html');
-   })
+        res.send(err);
+      } else {
+        console.log(data);
+        return res.redirect("signup_success.html");
+      }
+    });
+  } else {
+    return res.send("Body bata pass vako chaina");
+  }
 
+  // var username = req.body.username;
+  // var email = req.body.email;
+  // var password = req.body.password;
 
-    // var username = req.body.username;
-    // var email = req.body.email;
-    // var password = req.body.password;
+  // var data = {
+  //     name: username,
+  //     email : email,
+  //     password : password
+  // }
 
-    // var data = {
-    //     name: username,
-    //     email : email,
-    //     password : password
-    // }
+  // database.collection('users').insertOne(data,(err,collection)=>{
+  //     if(err){
+  //         throw err;
+  //     }
+  //     console.log("Record inserted Successfully");
+  //     // if(collection){
 
-    // database.collection('users').insertOne(data,(err,collection)=>{
-    //     if(err){
-    //         throw err;
-    //     }
-    //     console.log("Record inserted Successfully");
-    //     // if(collection){
+  //     //    return res.status(200).json({
+  //     //         msg: "Success!!"
 
-    //     //    return res.status(200).json({
-    //     //         msg: "Success!!"
+  //     //     })
+  //     // }
+  //     // console.log(err);
+  //     // return res.status(500).json({
+  //     //     msg: "Error"
+  //     // })
 
-    //     //     })
-    //     // }
-    //     // console.log(err);
-    //     // return res.status(500).json({
-    //     //     msg: "Error"
-    //     // })
+  //  });
+});
 
-    //  });
+app.get("/", (req, res) => {
+  return res.redirect("index.html");
+});
 
-
-})
-
-//app.use(bodyParser.json())
-app.use(express.static('public'))
-app.use(bodyParser.urlencoded({
-    extended:true
-}))
-
-
-app.get("/",(req,res)=>{
-    // res.send('Hello')
-    res.set({
-        "Allow-access-Allow-Origin" : "*"
-    })
-    return res.redirect('index.html')
-})
-
-app.listen(PORT,()=>{
-    console.log(`Connected to port ${PORT}`);
-})
-;
+app.listen(PORT, () => {
+  console.log(`Connected to port ${PORT}`);
+});
